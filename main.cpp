@@ -36,7 +36,7 @@ int main(int argc, char*argv[]){
     while(getline(infile,line)){
 
         istringstream buf(line);
-        istream_iterator<string> beg(buf), end;
+        std::istream_iterator<string> beg(buf), end;
         vector<string> nums(beg,end);
 
         vector<double> x;
