@@ -12,7 +12,7 @@ An abstract subclass of node class and represents the functions.
 Due to the different functionality, we have variable and function classes.
 */
 class Function : public Node{
-    
+
 public:
     // represents the list of variables that are inputs of this function
     vector<Variable *> inputs;
@@ -25,8 +25,8 @@ public:
     Function();
     // custom constructor
 
-    ~Function(); // destructor
-    
+   // ~Function(); // destructor
+
     // adds given variable as an input of this function
     void addInput(Variable *input);
 
@@ -36,19 +36,19 @@ public:
     // following two functions are inherited features from node class
     vector<Node *> getIncomings();
     vector<Node *> getOutgoings();
-    
+
     // following two functions will be implemented by the subclasses of Function class
 
     // performs forward pass and sets the value of output variable
     virtual void doForward() = 0;
 
     // performs backward pass and sets the derivative values of the input variables
-    virtual void doBackward() = 0; 
+    virtual void doBackward() = 0;
 
 };
 
 /*
-Subclass of function class that provides forward and backward pass functionalities 
+Subclass of function class that provides forward and backward pass functionalities
 for multiplication
 */
 class Multiplication : public Function{
@@ -59,7 +59,7 @@ public:
 };
 
 /*
-Subclass of function class that provides forward and backward pass functionalities 
+Subclass of function class that provides forward and backward pass functionalities
 for addition
 */
 class Addition : public Function{
@@ -70,7 +70,7 @@ public:
 };
 
 /*
-Subclass of function class that provides forward and backward pass functionalities 
+Subclass of function class that provides forward and backward pass functionalities
 for sine
 */
 class Sine : public Function{

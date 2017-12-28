@@ -225,3 +225,5 @@ void Sqrt::doForward() {
 void Sqrt::doBackward() {
     this->inputs[0]->derivative+=(this->output->derivative)*(1.0/2)*(1/sqrt(this->inputs[0]->value));
 }
+
+
