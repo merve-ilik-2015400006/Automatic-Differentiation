@@ -4,26 +4,21 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
+#include <algorithm>
+
 using namespace std;
 
 
-template <class Container>
-void split1(const string& str, Container& cont)
-{
-    istringstream iss(str);
-    copy(istream_iterator<string>(iss),
-         istream_iterator<string>(),
-         back_inserter(cont));
-}
-
-
-int main(int argc, char * argv[]){
+int main(int argc, char*argv[]){
 
     Graph g;
 
     ifstream infile(argv[2]);
-    ofstream output1(argv[3]);
-    ofstream output2(argv[4]);
+    ofstream output1;
+    output1.open(argv[3]);
+    ofstream output2;
+    output2.open(argv[4]);
     string line;
     getline(infile,line);
 
@@ -33,22 +28,27 @@ int main(int argc, char * argv[]){
         output2<<"ERROR: COMPUTATION GRAPH HAS CYCLE!"<<endl;
         return 0;
     }
-
-
+    output1<<g.vars[g.outputNode]->name<<endl;
+    for(int i=0; i<g.inputNodes.size(); i++){
+        output2 << "d" << g.name[g.outputNode] << "_d" << g.name[g.inputNodes[i]] << " ";
+    }
+    output2 << endl;
     while(getline(infile,line)){
 
-        vector<double> nums;
-        split1(line,nums);
+        istringstream buf(line);
+        istream_iterator<string> beg(buf), end;
+        vector<string> nums(beg,end);
+
         vector<double> x;
-        for(int i=0;i<g.inputNodes.size();i++){
-           x.push_back(nums[i]);
+        for(int i=0;i<nums.size();i++){
+            x.push_back(stod(nums[i]));
         }
 
-           output1<< g.forwardPass(x);
+        output1<< setprecision(16) << g.forwardPass(x);
 
         vector<double> derivatives=g.backwardPass();
         for(int i=0;i<g.inputNodes.size();i++){
-            output2<< derivatives[i];
+            output2<< setprecision(16)<<derivatives[i] << " ";
         }
         output1<<endl;
         output2<<endl;
@@ -59,7 +59,7 @@ int main(int argc, char * argv[]){
 
 
 
-
+return 0;
 
 
 }

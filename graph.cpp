@@ -9,15 +9,6 @@
 #include <cmath>
 #include <stack>
 using namespace std;
-template <class Container>
-
-void split1(const string& str, Container& cont)
-{
-    istringstream iss(str);
-    copy(istream_iterator<string>(iss),
-         istream_iterator<string>(),
-         back_inserter(cont));
-}
 
 // helper function that checks whether the given string is number or not.
 
@@ -130,18 +121,19 @@ void Graph::addBinaryFunction(string fnc, string inp1, string inp2, string out){
 void Graph::readGraph(string fileName){
     ifstream infile(fileName);
     string line;
-    getline(infile,line);
-    vector<string> words;
-    split1(line,words);
 
-    while(words[0].compare(" ")!=0){
+    while(getline(infile,line)){
+
+        istringstream buf(line);
+        istream_iterator<string> beg(buf), end;
+        vector<string> words(beg,end);
 
         if(words[0].compare("input")==0){
-           int id=getVariable(words[0]);
+            int id=getVariable(words[1]);
             inputNodes.push_back(id);
         }
         else if(words[0].compare("output")==0){
-            int id=getVariable(words[0]);
+            int id=getVariable(words[1]);
             outputNode=id;
         }
         else /*if(words[0].compare("assignment")==0)*/{
@@ -151,28 +143,39 @@ void Graph::readGraph(string fileName){
             }
             addAssignment(words[0],s);
         }
-        getline(infile,line);
-        vector<string> words;
-        split1(line,words);
     }
 }
 
 bool Graph::isCyclic(){
 
     queue<Node*> q;
-    for(int i=0;i<vars.size();i++){
-        if(vars[i]->getIncomings().size()==0)
-            q.push((Node*)vars[i]);
+    for(int i=1;i<=idCount;i++){
+        if(type[i]==VARIABLE)
+        {
+            if (vars[i]->getIncomings().size() == 0){
+                q.push((Node *) vars[i]);
+                seq.push_back((Node*)vars[i]);
+            }
+
+        } else{
+            if (fncs[i]->getIncomings().size() == 0) {
+                q.push((Node *) fncs[i]);
+                seq.push_back((Node*)fncs[i]);
+            }
+        }
     }
     Node* n;
     while(!q.empty()){
         n=q.front();
         q.pop();
 
-        for(int i=0;i<n->getOutgoings().size();i++){
-            n->getOutgoings()[i]->indegree--;
-            if(n->getOutgoings()[i]->indegree==0)
-                q.push(n->getOutgoings()[i]);
+        vector<Node*> outgoings = n->getOutgoings();
+        for(int i=0;i<outgoings.size();i++){
+            outgoings[i]->indegree--;
+            if(outgoings[i]->indegree==0) {
+                q.push(outgoings[i]);
+                seq.push_back(outgoings[i]);
+            }
         }
     }
     if(n->id==outputNode)
@@ -185,79 +188,40 @@ bool Graph::isCyclic(){
 
 double Graph::forwardPass(vector<double> inputValues){
 
-    for(int i=0;i<vars.size();i++){
-      this->vars[inputNodes[i]]->value=inputValues[i];
-    }
-
-    queue <Variable *> q;
     for(int i=0;i<inputNodes.size();i++){
-        q.push(this->vars[inputNodes[i]]);
+        this->vars[inputNodes[i]]->value=inputValues[i];
     }
 
-    while(!q.empty()){
 
-        Variable* v=q.front();
-        q.pop();
-
-        for(int i=0;i<v->to.size();i++){
-            v->to[i]->indegree--;
-            v->to[i]->output->indegree--;
-            if(v->to[i]->output->indegree==0)
-                q.push(v->to[i]->output);
+    for(int i=0;i<seq.size();i++){
+        if(type[seq[i]->id]==FUNCTION){
+            fncs[seq[i]->id]->doForward();
         }
-        for(int i=0;i<v->to.size();i++){
-            v->to[i]->doForward();
-        }
-
     }
-
     return vars[outputNode]->value;
-
 }
 
 vector<double> Graph::backwardPass(){
 
-    vector<double> result;
-    queue <Variable *> q;
-    queue <Variable*> q2;
-    for(int i=0;i<inputNodes.size();i++){
-        q.push(this->vars[inputNodes[i]]);
-    }
 
-    while(!q.empty()){
+    vector<double> result(inputNodes.size());
 
-        Variable* v=q.front();
-        q2.push(v);
-        q.pop();
-        for(int i=0;i<v->to.size();i++){
-            v->to[i]->indegree--;
-            v->to[i]->output->indegree--;
-            if(v->to[i]->output->indegree==0)
-                q.push(v->to[i]->output);
-        }
-        for(int i=0;i<v->to.size();i++){
-            v->to[i]->doForward();
+    for(int i=1; i<=idCount; i++){
+        if(type[i]==VARIABLE) {
+            vars[i]->derivative = 0;
         }
     }
-    stack <Variable *> s;
-    for(int i=0;q2.size();i++){
-        Variable* x=q2.front();
-        q2.pop();
-        s.push(x);
-    }
-    for(int i=0;i<s.size();i++){
-        Variable* y=s.top();
-        s.pop();
-        q2.push(y);
+    vars[outputNode]->derivative =1;
+
+
+    for(int i=seq.size()-1; i>=0; i--) {
+        if(type[seq[i]->id] == FUNCTION) {
+            fncs[seq[i]->id]->doBackward();
+        }
     }
 
-    while(!q2.empty()){
-        Variable* v=q2.front();
-        q2.pop();
-        v->from->doBackward();
-    }
-    for(int i=0;i<inputNodes.size();i++){
-        result.push_back(vars[inputNodes[i]]->derivative);
+    for(int i=0; i<inputNodes.size(); i++){
+        result[i] = vars[inputNodes[i]]->derivative;
     }
     return result;
 
@@ -265,8 +229,11 @@ vector<double> Graph::backwardPass(){
 
 void Graph::addAssignment(string lvalue, string rvalue) {
 
-    vector<string> right;
-    split1(rvalue,right);
+
+
+    istringstream buf(rvalue);
+    istream_iterator<string> beg(buf), end;
+    vector<string> right(beg,end);
 
     if(right.size()==3)
         addBinaryFunction(right[0],right[1],right[2],lvalue);
@@ -275,3 +242,4 @@ void Graph::addAssignment(string lvalue, string rvalue) {
         addUnaryFunction(right[0], right[1],lvalue);
 
 }
+
