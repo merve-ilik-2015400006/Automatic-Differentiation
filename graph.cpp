@@ -125,7 +125,7 @@ void Graph::readGraph(string fileName){
     while(getline(infile,line)){
 
         istringstream buf(line);
-        istream_iterator<string> beg(buf), end;
+        std::istream_iterator<string> beg(buf), end;
         vector<string> words(beg,end);
 
         if(words[0].compare("input")==0){
@@ -232,7 +232,7 @@ void Graph::addAssignment(string lvalue, string rvalue) {
 
 
     istringstream buf(rvalue);
-    istream_iterator<string> beg(buf), end;
+    std::istream_iterator<string> beg(buf), end;
     vector<string> right(beg,end);
 
     if(right.size()==3)
