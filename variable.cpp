@@ -1,13 +1,11 @@
 
 #include "variable.h"
 using namespace std;
-#include <vector>
-#include "Node"
+
 Variable::Variable(){
     value=0;
     derivative=0;
     from=nullptr;
-    to= nullptr;
     this->id=0;
     this->name="";
 
@@ -21,6 +19,7 @@ Variable::Variable(int _id, string _name, double _value) {
 
 void Variable::setFrom(Function *_from) {
     this->from=_from;
+    this->indegree++;
 }
 
 void Variable::addTo(Function *_to) {
@@ -35,14 +34,14 @@ vector<Node *> Variable::getOutgoings() {
     }
     return result;
 }
-vector<Node *> Variable::Incomings() {
+vector<Node *> Variable::getIncomings() {
     vector <Node*> result;
-    result.push_back((Node*)(to));
+    result.push_back((Node*)(from));
+    return result;
 }
 
-Variable::~Variable() {
-    delete this->from;
-    delete this->to;
-}
+/*Variable::~Variable(){
+
+}*/
 
 

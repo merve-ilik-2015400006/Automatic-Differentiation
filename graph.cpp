@@ -4,11 +4,13 @@
 #include <string>
 #include <unordered_map>
 #include "graph.h"
-#include "variable.h"
-#include "function.h"
 #include <queue>
-
+#include <sstream>
+#include <cmath>
+#include <stack>
 using namespace std;
+template <class Container>
+
 void split1(const string& str, Container& cont)
 {
     istringstream iss(str);
@@ -65,7 +67,6 @@ int Graph::getFunction(string fnc){
         f = new Subtraction(idCount, fnc);
     else if(fnc.compare("divide")==0)
         f = new Division(idCount, fnc);
-
     else if(fnc.compare("sin")==0)
         f = new Sine(idCount, fnc);
     else if(fnc.compare("cos")==0)
@@ -127,7 +128,7 @@ void Graph::addBinaryFunction(string fnc, string inp1, string inp2, string out){
 void Graph::readGraph(string fileName){
     ifstream infile(fileName);
     string line;
-    getLine(infile,line);
+    getline(infile,line);
     vector<string> words;
     split1(line,words);
 
@@ -141,38 +142,131 @@ void Graph::readGraph(string fileName){
             int id=getVariable(words[0]);
             outputNode=id;
         }
-        else if(words[0].compare("assignment")==0){
+        else /*if(words[0].compare("assignment")==0)*/{
             string s="";
             for(int j=2;j<words.size();j++){
                 s=s+words[j]+" ";
             }
             addAssignment(words[0],s);
         }
-        getLine(infile,line);
+        getline(infile,line);
         vector<string> words;
         split1(line,words);
     }
 }
 
-void Graph::initTopologicalOrder(queue<Node *> &q, int *incSizes){
-
-}
-
 bool Graph::isCyclic(){
+
+    queue<Node*> q;
+    for(int i=0;i<vars.size();i++){
+        if(vars[i]->getIncomings().size()==0)
+            q.push((Node*)vars[i]);
+    }
+    Node* n;
+    while(!q.empty()){
+        n=q.front();
+        q.pop();
+
+        for(int i=0;i<n->getOutgoings().size();i++){
+            n->getOutgoings()[i]->indegree--;
+            if(n->getOutgoings()[i]->indegree==0)
+                q.push(n->getOutgoings()[i]);
+        }
+    }
+    if(n->id==outputNode)
+        return false;
+    else
+        return true;
 }
+
+
 
 double Graph::forwardPass(vector<double> inputValues){
+
+    for(int i=0;i<vars.size();i++){
+      this->vars[inputNodes[i]]->value=inputValues[i];
+    }
+
+    queue <Variable *> q;
+    for(int i=0;i<inputNodes.size();i++){
+        q.push(this->vars[inputNodes[i]]);
+    }
+
+    while(!q.empty()){
+
+        Variable* v=q.front();
+        q.pop();
+
+        for(int i=0;i<v->to.size();i++){
+            v->to[i]->indegree--;
+            v->to[i]->output->indegree--;
+            if(v->to[i]->output->indegree==0)
+                q.push(v->to[i]->output);
+        }
+        for(int i=0;i<v->to.size();i++){
+            v->to[i]->doForward();
+        }
+
+    }
+
+    return vars[outputNode]->value;
+
 }
 
 vector<double> Graph::backwardPass(){
-};
+
+    vector<double> result;
+    queue <Variable *> q;
+    queue <Variable*> q2;
+    for(int i=0;i<inputNodes.size();i++){
+        q.push(this->vars[inputNodes[i]]);
+    }
+
+    while(!q.empty()){
+
+        Variable* v=q.front();
+        q2.push(v);
+        q.pop();
+        for(int i=0;i<v->to.size();i++){
+            v->to[i]->indegree--;
+            v->to[i]->output->indegree--;
+            if(v->to[i]->output->indegree==0)
+                q.push(v->to[i]->output);
+        }
+        for(int i=0;i<v->to.size();i++){
+            v->to[i]->doForward();
+        }
+    }
+    stack <Variable *> s;
+    for(int i=0;q2.size();i++){
+        Variable* x=q2.front();
+        q2.pop();
+        s.push(x);
+    }
+    for(int i=0;i<s.size();i++){
+        Variable* y=s.top();
+        s.pop();
+        q2.push(y);
+    }
+
+    while(!q2.empty()){
+        Variable* v=q2.front();
+        q2.pop();
+        v->from->doBackward();
+    }
+    for(int i=0;i<inputNodes.size();i++){
+        result.push_back(vars[inputNodes[i]]->derivative);
+    }
+    return result;
+
+}
 
 void Graph::addAssignment(string lvalue, string rvalue) {
 
     vector<string> right;
     split1(rvalue,right);
-    if(right[0].compare("add")==0 ||right[0].compare("mult")==0 ||right[0].compare("subs")==0 ||right[0].compare("divide")==0
-       ||right[0].compare("pow")==0)
+
+    if(right.size()==3)
         addBinaryFunction(right[0],right[1],right[2],lvalue);
 
     else
