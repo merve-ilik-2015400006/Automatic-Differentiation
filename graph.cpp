@@ -18,7 +18,9 @@ void split1(const string& str, Container& cont)
          istream_iterator<string>(),
          back_inserter(cont));
 }
+
 // helper function that checks whether the given string is number or not.
+
 bool isNumber(const string& s)
 {
     char* end = 0;
@@ -28,7 +30,7 @@ bool isNumber(const string& s)
 
 int Graph::getVariable(string inp){
     int res;
-    if( isNumber(inp) ){
+    if( isNumber(inp)){
         double val = stod(inp.c_str());
         idCount++;
         name[idCount] = inp;
