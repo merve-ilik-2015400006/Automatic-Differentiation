@@ -15,18 +15,19 @@ class Node{
 public:
     // represents id of the node
     int id;
+
     // represents name of the node
-    string name; 
+    string name;
 
     // returns the incomming edges of the node
-    virtual vector<Node *> getIncomings() = 0; 
+    virtual vector<Node *> getIncomings() = 0;
 
     // returns the outgoing edges of the node
     virtual vector<Node *> getOutgoings() = 0;
 
-    // destructor
-    ~Node();
     int indegree=0;
+    // destructor
+    //~Node();
 };
 
 /*
@@ -36,6 +37,7 @@ Due to the different functionality, we have variable and function classes.
 class Variable : public Node{
 
 public:
+
     // represents the value of the variable
     double value;
 
@@ -52,7 +54,7 @@ public:
 
     Variable(); // default constructor
     Variable(int _id, string _name, double _value = 0); // custom constructor
-    ~Variable(); // destructor
+   // ~Variable(); // destructor
 
     // sets the from pointer
     void setFrom(Function *_from);

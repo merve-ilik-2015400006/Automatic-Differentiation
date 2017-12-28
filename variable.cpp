@@ -8,7 +8,6 @@ Variable::Variable(){
     from=nullptr;
     this->id=0;
     this->name="";
-
 }
 
 Variable::Variable(int _id, string _name, double _value) {
@@ -36,12 +35,14 @@ vector<Node *> Variable::getOutgoings() {
 }
 vector<Node *> Variable::getIncomings() {
     vector <Node*> result;
-    result.push_back((Node*)(from));
+    if(from != nullptr)
+        result.push_back((Node*)(from));
     return result;
 }
 
 /*Variable::~Variable(){
 
 }*/
+
 
 

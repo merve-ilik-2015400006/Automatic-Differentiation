@@ -20,7 +20,7 @@ Graph class is created in order to construct directed graph structure
 class Graph{
 public:
     // map storing the name, id pairs as key and value for each node.
-    unordered_map<string, int> id; 
+    unordered_map<string, int> id;
 
     // map storing the id, name pairs as key and value for each node.
     unordered_map<int, string> name;
@@ -39,14 +39,17 @@ public:
     // stores the ids of input nodes.
     vector<int> inputNodes;
 
+
+    vector<Node*> seq;
     // stores the id of ouput node
     int outputNode;
 
     // helps to count ids.
     int idCount=0;
 
+public:
 
-    ~Graph(); // destructor
+    //~Graph(); // destructor
 
     // returns the id of variable with given variable name
     // if the given name is new then it creates an instance of variable and
@@ -68,15 +71,15 @@ public:
 
     // it reads the graph description and constructs it.
     void readGraph(string filename);
+
     // checks whether the graph is cyclic or not.
     bool isCyclic();
 
     // performs forward pass for the graph and returns the output value.
     double forwardPass(vector<double> inputValues);
-    
+
     // performs backward pass for the graph and returns the derivative values.
     vector<double> backwardPass();
-
 
 };
 
